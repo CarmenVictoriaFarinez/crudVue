@@ -1,7 +1,7 @@
 <template id="add-product">
     <div class="p-5">
          <h2 class="p-5 font-semibold">Add new product</h2>
-          <form @submit.prevent="createProduct()">
+          <form @submit.prevent="createProduct">
             <div>
                 <label for="add-name">Name</label>
                 <input class="form-control" id="add-name" v-model="product.name" required/>
@@ -30,6 +30,7 @@ export default {
   data: function () {
     return {
         product: {
+            id: '',
             name: '', 
             description: '', 
             price: ''
@@ -38,15 +39,7 @@ export default {
   },
   methods: {
     createProduct () {
-    let product = this.product;
-    let products = [];
-      products.push({
-        id: Date.now(),
-        name: product.name,
-        description: product.description,
-        price: product.price
-      });
-      console.log(products)
+      this.$emit('createProduct', {...this.product, id: Date.now()})
     }
   }
 }

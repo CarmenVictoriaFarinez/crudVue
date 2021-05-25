@@ -1,7 +1,7 @@
 <template id="table-list">
   <div class="container p-5">
-    <h2 class="font-semibold">Add new product</h2>
-        <form @submit.prevent="createProduct()">
+    <!--<h2 class="font-semibold">Add new product</h2>
+        <form @submit.prevent="createProduct()" ref="form">
           <div>
               <label for="add-name">Name</label>
               <input class="form-control" id="add-name" v-model="product.name" required/>
@@ -15,11 +15,12 @@
               <input type="number" class="form-control" id="add-price" v-model="product.price"/>
           </div>
           <button type="submit" class="bg-green-500">Create</button>
-        </form>
+        </form>-->
     <h2 class="pt-5 font-semibold">Listado</h2>
     <table class="">
       <thead>
         <tr class="bg-green-200">
+          <th>id</th>
           <th>Name</th>
           <th>Description</th>
           <th>Price</th>
@@ -27,47 +28,56 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in products" :key="product.id">
-           <td>{{ product.id }}</td>
-                
-           <td>
-              <span v-if="formUpdate && idUpdate == product.id">
-                 <input v-model="nameUpdate" type="text" class="form-control">
-              </span>
-              <span v-else>
-                    {{ product.name }}
-              </span>
-           </td>
-
-           <td>
-              <span v-if="formUpdate && idUpdate == product.id">
-                 <input v-model="descriptionUpdate" type="text" class="form-control">
-              </span>
-              <span v-else>
+        <tr v-for="product of products" :key="product.id">
+          <template v-if="form_update && (update.id === product.id)">
+              <td>{{ update.id }}</td>
+              <td>
+                  <span>
+                    <input v-model="update.name" type="text" class="form-control">
+                  </span>
+              </td>
+              <td>
+                <span>
+                    <input v-model="update.description" type="text" class="form-control">
+                </span>
+              </td>
+              <td>
+                  <span>
+                    <input v-model="update.price" type="text" class="form-control">
+                  </span>
+              </td>
+              <td>
+                  <span>
+                    <button @click="saveProduct" class="bg-green-500">Guardar</button>
+                  </span>
+              </td>
+          </template>
+          <template v-else>
+              <td>{{ product.id }}</td>
+              <td>
+                  <span>
+                  {{ product.name }}
+                  </span>
+              </td>
+              <td>
+                <span>
                     {{ product.description }}
-              </span>
-           </td>
-
-          <td>
-              <span v-if="formUpdate && idUpdate == product.id">
-                 <input v-model="priceUpdate" type="text" class="form-control">
-              </span>
-              <span v-else>
+                </span>
+              </td>
+              <td>
+                <span>
                     {{ product.price }}
-              </span>
-           </td>
-          <td>
-             <!-- Botón para guardar la información actualizada -->
-              <span v-if="formUpdate && idUpdate == product.id">
-                  <button @click="saveProduct(product.id)" class="bg-green-500">Guardar</button>
-              </span>
-              <span v-else>
-
-                <button type="button" class="bg-yellow-400"  @click="updateProduct(product.id)">Edit</button>
-                <button type="button" class="bg-red-400" @click="deleteProduct(product.id)">Delete</button>
-
-              </span>
-          </td>
+                </span>
+              </td>
+              <td>
+                <!-- Botón para guardar la información actualizada -->
+                  <span>
+                    <button type="button" class="bg-yellow-400"  @click="updateProduct(product.id)">Edit</button>
+                    <button type="button" class="bg-red-400" @click="deleteProduct(product.id)">Delete</button>
+                  </span>
+              </td>
+          </template>
+          
         </tr>
       </tbody>
     </table>
@@ -76,20 +86,19 @@
 
 <script>
 export default {
-  template: 'table-list',
-  props: [],
+  name: 'table-list',
+  props: {
+    products: {
+      type: Array,
+      default: null
+    }
+  },
  data () {
     return {
-      formUpdate: false,
-      nameUpdate: '',
-      descriptionUpdate:'',
-      priceUpdate: '',
-      products: [
-      {id: 1, name: 'Angular', description: 'Superheroic JavaScript MVW Framework.', price: 10},
-      {id: 2, name: 'Ember', description: 'A framework for creating ambitious web applications.', price: 20},
-      {id: 3, name: 'React', description: 'A JavaScript Library for building user interfaces.', price: 30}
-    ],
+      form_update: false,
+      update:{},
       product: {
+        id: '',
         name: '', 
         description: '', 
         price: ''
@@ -97,39 +106,30 @@ export default {
     }
   },
   methods: {
-    createProduct () {
-    let product = this.product;
-      this.products.push({
-        id: Date.now(),
-        name: product.name,
-        description: product.description,
-        price: product.price
-      }); 
-      
+    createProduct() {
+      this.products.push({...this.product, id: Date.now()});
+      //console.log(product)
     },
      updateProduct: function (product_id){
-      this.idUpdate = product_id;
-      this.nameUpdate = this.products[product_id].name;
-      this.descriptionUpdate = this.products[product_id].description;
-      this.priceUpdate = this.products[product_id].price;
+      this.form_update = true;
+      this.update = this.products.find(product => product.id === product_id)
 
-      this.formUpdate = true;
-      console.log(this.formUpdate)
+      //console.log(this.update);
     },
     
-     deleteProduct: function (product_id) {
-        // Borramos de la lista
-      this.products.splice(product_id, 1);
-      console.log(product_id)
+     deleteProduct: function (id) {
+      this.$emit('deleteProduct', id)
+
      },
 
-     saveProduct: function (product_id) {
+     saveProduct: function () {
         // Ocultamos nuestro formulario de actualizar
-        this.formUpdate = false;
+        this.form_update = false;
         // Actualizamos los datos
-        this.products[product_id].name = this.nameUpdate;
-        this.products[product_id].description = this.descriptionUpdate;
-        this.products[product_id].price = this.priceUpdate;
+        
+        
+        this.$emit('saveProduct', this.update)
+
      },
  } 
 }
